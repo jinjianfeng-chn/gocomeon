@@ -8,9 +8,6 @@ type Action func() (interface{}, error)
 // ActionBeforeRetry Do something before retry again.
 type ActionBeforeRetry func(int, error)
 
-// Logger Print log
-type Logger func(log string)
-
 type RetryableTimes struct {
 	// Attempts the number retry attempts
 	Attempts int
@@ -20,8 +17,8 @@ type RetryableTimes struct {
 	Action Action
 	// ActionBeforeRetry do something before retry again
 	ActionBeforeRetry ActionBeforeRetry
-	// Logger print log
-	Logger Logger
+	// LogOutput print log
+	LogOutput LogOutput
 }
 
 func (p *RetryableTimes) Required(attempt int, e error) bool {
@@ -37,6 +34,6 @@ func (p *RetryableTimes) DoAction() (interface{}, error) {
 	return p.Action()
 }
 
-func (p *RetryableTimes) Log(log string) {
-	p.Logger(log)
+func (p *RetryableTimes) GetLogOutput() LogOutput {
+	return p.LogOutput
 }
