@@ -2,17 +2,18 @@ package retry
 
 import (
 	"fmt"
+	"time"
 )
 
 type LogOutput interface {
 	Debugln(args ...interface{})
 }
 
-type ConsoleLogOutput struct {
+type NoLogOutput struct {
 }
 
-func (p *ConsoleLogOutput) Debugln(args ...interface{}) {
-	fmt.Println(args)
+func (p *NoLogOutput) Debugln(args ...interface{}) {
+
 }
 
 type Retryable interface {
@@ -22,6 +23,8 @@ type Retryable interface {
 	DoActionBeforeRetry(int, error)
 	// DoAction Do action
 	DoAction() (interface{}, error)
+	// RetryInterval retry interval time, param is the number of last retries
+	RetryInterval(int) time.Duration
 	// GetLogOutput Get log output
 	GetLogOutput() LogOutput
 }
@@ -30,29 +33,32 @@ type Retryable interface {
 func Invoke(retryable Retryable) (interface{}, error) {
 	logOutput := retryable.GetLogOutput()
 	if logOutput == nil {
-		logOutput = &ConsoleLogOutput{}
+		logOutput = &NoLogOutput{}
 	}
 
-	attempts := 1
+	attempts := 0
+	var e error
+	var result interface{}
+
 	for {
-		result, e := retryable.DoAction()
+		attempts++
+		if attempts > 1 {
+			retryable.DoActionBeforeRetry(attempts, e)
+		}
+		result, e = retryable.DoAction()
 		if e == nil {
 			if attempts > 1 {
 				logOutput.Debugln(fmt.Sprintf("success on attempt #%d", attempts))
 			}
 			return result, nil
 		}
-
 		logOutput.Debugln(fmt.Sprintf("failed with error [%s] on attempt #%d", e, attempts))
 		if !retryable.Required(attempts, e) {
-			if attempts > 1 {
-				logOutput.Debugln(fmt.Sprintf("retry for error [%s] is not warranted after %d attempt(s)", e, attempts))
-			}
+			logOutput.Debugln(fmt.Sprintf("retry for error [%s] is not warranted after %d attempt(s)", e, attempts))
 			return result, e
 		}
-
-		logOutput.Debugln(fmt.Sprintf("retry for error [%s] is warranted after %d attempt(s)", e, attempts))
-		retryable.DoActionBeforeRetry(attempts, e)
-		attempts++
+		interval := retryable.RetryInterval(attempts)
+		logOutput.Debugln(fmt.Sprintf("retry for error [%s] is warranted after %d attempt(s). the retry will begin after %s", e, attempts, interval))
+		time.Sleep(interval)
 	}
 }
