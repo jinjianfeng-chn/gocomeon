@@ -1,3 +1,3 @@
-module github.com/jinjianfeng-chn/gocommeon
+module github.com/jinjianfeng-chn/gocomeon
 
 go 1.17
