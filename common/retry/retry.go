@@ -6,23 +6,23 @@ import (
 )
 
 type LogOutput interface {
-	Debugln(args ...interface{})
+	Debugln(args ...any)
 }
 
 type NoLogOutput struct {
 }
 
-func (p *NoLogOutput) Debugln(args ...interface{}) {
+func (p *NoLogOutput) Debugln(args ...any) {
 
 }
 
-type Retryable interface {
+type Retryable[T any] interface {
 	// Required Retry handler interface decides whether a retry is required for the given error.
 	Required(int, error) bool
 	// DoActionBeforeRetry Do something before retry again. The first time is not executed.
 	DoActionBeforeRetry(int, error)
 	// DoAction Do action
-	DoAction() (interface{}, error)
+	DoAction() (T, error)
 	// RetryInterval retry interval time, param is the number of last retries
 	RetryInterval(int) time.Duration
 	// GetLogOutput Get log output
@@ -30,7 +30,7 @@ type Retryable interface {
 }
 
 // Invoke invokes the given function and performs retries according to the retry options.
-func Invoke(retryable Retryable) (interface{}, error) {
+func Invoke[T any](retryable Retryable[T]) (T, error) {
 	logOutput := retryable.GetLogOutput()
 	if logOutput == nil {
 		logOutput = &NoLogOutput{}
@@ -38,7 +38,7 @@ func Invoke(retryable Retryable) (interface{}, error) {
 
 	attempts := 0
 	var e error
-	var result interface{}
+	var result T
 
 	for {
 		attempts++

@@ -7,34 +7,34 @@ import (
 	"time"
 )
 
-type TestRetryable struct {
+type TestRetryable[T string] struct {
 	attempts int
 }
 
-func (p *TestRetryable) Required(attempt int, e error) bool {
+func (p *TestRetryable[T]) Required(attempt int, e error) bool {
 	return attempt < 5
 }
 
-func (p *TestRetryable) DoActionBeforeRetry(attempt int, e error) {
+func (p *TestRetryable[T]) DoActionBeforeRetry(attempt int, e error) {
 	fmt.Println(fmt.Sprintf("attempt=%d, error=%v", attempt, e))
 }
 
-func (p *TestRetryable) DoAction() (interface{}, error) {
+func (p *TestRetryable[T]) DoAction() (T, error) {
 	p.attempts++
-	return nil, errors.New(fmt.Sprintf("do action error %d", p.attempts))
+	return "", errors.New(fmt.Sprintf("do action error %d", p.attempts))
 }
 
-func (p *TestRetryable) RetryInterval(attempt int) time.Duration {
+func (p *TestRetryable[T]) RetryInterval(attempt int) time.Duration {
 	return time.Second
 }
 
-func (p *TestRetryable) GetLogOutput() LogOutput {
+func (p *TestRetryable[T]) GetLogOutput() LogOutput {
 	return nil
 }
 
 func TestInvoke(t *testing.T) {
-	retryable := &TestRetryable{}
-	result, e := Invoke(retryable)
+	retryable := &TestRetryable[string]{}
+	result, e := Invoke[string](retryable)
 	fmt.Println(fmt.Sprintf("result=%v, error=%v", result, e))
 	msg := "do action error 5"
 	if e.Error() != msg {
