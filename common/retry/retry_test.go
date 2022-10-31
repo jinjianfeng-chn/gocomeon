@@ -28,8 +28,8 @@ func (p *TestRetryable[T]) RetryInterval(attempt int) time.Duration {
 	return time.Second
 }
 
-func (p *TestRetryable[T]) GetLogOutput() LogOutput {
-	return nil
+func (p *TestRetryable[T]) Logout(log string) {
+
 }
 
 func TestInvoke(t *testing.T) {
