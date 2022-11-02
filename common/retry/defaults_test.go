@@ -11,16 +11,21 @@ import (
 
 func TestRetryableTimes(t *testing.T) {
 
-	retryableTimes := RetryableTimes[string]{
+	retryableTimes := RetryableTimes{
 		Attempts: 3,
 		Interval: 1000,
-		Action: func() (string, error) {
-			return "", errors.New("do action error")
-		},
+	}
+
+	action := func() (string, error) {
+		return "", errors.New("do action error")
+	}
+
+	retryableInvoke := &RetryableInvoke[string]{
+		Retryable: &retryableTimes,
 	}
 
 	t.Run("normal", func(t *testing.T) {
-		r, e := Invoke[string](&retryableTimes)
+		r, e := retryableInvoke.Invoke(action)
 		fmt.Println(r)
 
 		msg := "do action error"
@@ -30,25 +35,22 @@ func TestRetryableTimes(t *testing.T) {
 	})
 
 	t.Run("action is nil", func(t *testing.T) {
-		action := retryableTimes.Action
-		retryableTimes.Action = nil
-		_, e := Invoke[string](&retryableTimes)
-
+		_, e := retryableInvoke.Invoke(nil)
 		if !errors.Is(e, &ErrorActionIsNil{}) {
 			t.Fatal(fmt.Sprintf("error message expected [%s], but [%s] got", &ErrorActionIsNil{}, e.Error()))
 		}
-		retryableTimes.Action = action
 	})
 }
 
 func TestRetryableTimesBackoff(t *testing.T) {
 
-	retryableTimes := RetryableTimesBackoff[string]{
-		RetryableTimes: RetryableTimes[string]{
+	action := func() (string, error) {
+		return "", errors.New("do action error")
+	}
+
+	retryableTimes := RetryableTimesBackoff{
+		RetryableTimes: RetryableTimes{
 			Attempts: 3,
-			Action: func() (string, error) {
-				return "", errors.New("do action error")
-			},
 		},
 		Backoff: backoff.Backoff{
 			InitialBackoff: time.Second,
@@ -57,8 +59,12 @@ func TestRetryableTimesBackoff(t *testing.T) {
 		},
 	}
 
+	retryableInvoke := &RetryableInvoke[string]{
+		Retryable: &retryableTimes,
+	}
+
 	t.Run("normal", func(t *testing.T) {
-		r, e := Invoke[string](&retryableTimes)
+		r, e := retryableInvoke.Invoke(action)
 		fmt.Println(r)
 
 		msg := "do action error"
@@ -68,13 +74,9 @@ func TestRetryableTimesBackoff(t *testing.T) {
 	})
 
 	t.Run("action is nil", func(t *testing.T) {
-		action := retryableTimes.Action
-		retryableTimes.Action = nil
-		_, e := Invoke[string](&retryableTimes)
-
+		_, e := retryableInvoke.Invoke(nil)
 		if !errors.Is(e, &ErrorActionIsNil{}) {
 			t.Fatal(fmt.Sprintf("error message expected [%s], but [%s] got", &ErrorActionIsNil{}, e.Error()))
 		}
-		retryableTimes.Action = action
 	})
 }
