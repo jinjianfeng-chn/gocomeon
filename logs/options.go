@@ -19,3 +19,9 @@ func WithLogCalldepth(calldepth int) LoggerOption {
 		l.calldepth = calldepth
 	}
 }
+
+func WithLogFlat(flag int) LoggerOption {
+	return func(l *logger) {
+		l.flag = flag
+	}
+}

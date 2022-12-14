@@ -61,8 +61,11 @@ func New(options ...LoggerOption) Logger {
 	if l.calldepth == 0 {
 		l.calldepth = 2
 	}
-	l.stdout = log.New(os.Stdout, l.prefix, log.Ldate|log.Ltime|log.Lmicroseconds|log.Llongfile)
-	l.stderr = log.New(os.Stderr, l.prefix, log.Ldate|log.Ltime|log.Lmicroseconds|log.Llongfile)
+	if l.flag == 0 {
+		l.flag = log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile
+	}
+	l.stdout = log.New(os.Stdout, l.prefix, l.flag)
+	l.stderr = log.New(os.Stderr, l.prefix, l.flag)
 	return l
 }
 
@@ -70,6 +73,7 @@ type logger struct {
 	level     Level
 	prefix    string
 	calldepth int
+	flag      int
 	stdout    *log.Logger
 	stderr    *log.Logger
 }

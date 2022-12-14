@@ -6,6 +6,7 @@ var l Logger
 var LogLevel = INFO
 var LogPrefix = ""
 var LogCalldepth = 2
+var LogFlag = 0
 var mutex sync.Mutex
 
 func SetLogLevel(level Level) {
@@ -20,8 +21,20 @@ func SetLogCalldepth(calldepth int) {
 	LogCalldepth = calldepth
 }
 
+func SetLogFlag(flag int) {
+	LogFlag = flag
+}
+
 func SetLogger(logger Logger) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	l = logger
+}
+
+func ResetLogger() {
+	mutex.Lock()
+	defer mutex.Unlock()
+	l = nil
 }
 
 func GetLogger() Logger {
