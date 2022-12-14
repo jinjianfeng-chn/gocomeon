@@ -50,8 +50,6 @@ type Logger interface {
 	Panicf(format string, args ...interface{})
 }
 
-var logs = NewLogger(INFO, "")
-
 func New(options ...LoggerOption) Logger {
 	l := &logger{}
 	for _, option := range options {
@@ -68,22 +66,12 @@ func New(options ...LoggerOption) Logger {
 	return l
 }
 
-func NewLogger(level Level, prefix string) Logger {
-	return &logger{
-		level:     level,
-		prefix:    prefix,
-		calldepth: 2,
-		stdout:    log.New(os.Stdout, prefix, log.Ldate|log.Ltime|log.Lmicroseconds|log.Llongfile),
-		stderr:    log.New(os.Stderr, prefix, log.Ldate|log.Ltime|log.Lmicroseconds|log.Llongfile),
-	}
-}
-
 type logger struct {
 	level     Level
 	prefix    string
+	calldepth int
 	stdout    *log.Logger
 	stderr    *log.Logger
-	calldepth int
 }
 
 func (p *logger) Trace(args ...interface{}) {
@@ -125,7 +113,8 @@ func (p *logger) Infof(format string, args ...interface{}) {
 	if INFO < p.level {
 		return
 	}
-	_ = p.stdout.Output(p.calldepth, fmt.Sprintf(format, args...))
+	s := fmt.Sprintf(format, args...)
+	_ = p.stdout.Output(p.calldepth, s)
 }
 
 func (p *logger) Warn(args ...interface{}) {
@@ -188,60 +177,4 @@ func (p *logger) Panicf(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	_ = p.stderr.Output(p.calldepth, s)
 	panic(s)
-}
-
-func Trace(args ...interface{}) {
-	logs.Trace(args)
-}
-
-func Tracef(format string, args ...interface{}) {
-	logs.Tracef(format, args)
-}
-
-func Debug(args ...interface{}) {
-	logs.Debug(args)
-}
-
-func Debugf(format string, args ...interface{}) {
-	logs.Debugf(format, args)
-}
-
-func Info(args ...interface{}) {
-	logs.Info(args)
-}
-
-func Infof(format string, args ...interface{}) {
-	logs.Infof(format, args)
-}
-
-func Warn(args ...interface{}) {
-	logs.Warn(args)
-}
-
-func Warnf(format string, args ...interface{}) {
-	logs.Warnf(format, args)
-}
-
-func Error(args ...interface{}) {
-	logs.Error(args)
-}
-
-func Errorf(format string, args ...interface{}) {
-	logs.Errorf(format, args)
-}
-
-func Fatal(args ...interface{}) {
-	logs.Fatal(args)
-}
-
-func Fatalf(format string, args ...interface{}) {
-	logs.Fatalf(format, args)
-}
-
-func Panic(args ...interface{}) {
-	logs.Panic(args)
-}
-
-func Panicf(format string, args ...interface{}) {
-	logs.Panicf(format, args)
 }

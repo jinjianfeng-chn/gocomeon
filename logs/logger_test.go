@@ -5,12 +5,13 @@ import (
 )
 
 func TestLogger(t *testing.T) {
-	logs.Trace("hello world")
-	logs.Debug("hello world")
-	logs.Infof("hello world")
-	logs.Infof("hello world")
-	logs.Infof("hello world")
-	logs.Warn("hello world")
-	logs.Error("hello world")
-	logs.Fatal("hello world")
+	l := New()
+	l.Trace("hello world")
+	l.Debug("hello world")
+	l.Infof("hello world, %s", "1")
+	l.Infof("hello world")
+	l.Infof("hello world")
+	l.Warn("hello world")
+	l.Error("hello world")
+	l.Fatal("hello world")
 }
