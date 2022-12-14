@@ -15,7 +15,7 @@ func (p *ErrorActionIsNil) Error() string {
 }
 
 type LogOutput interface {
-	Debugln(args ...any)
+	Debug(args ...any)
 }
 
 // RetryableTimes Retry until the maximum number of retry times is reached
@@ -49,7 +49,7 @@ func (p *RetryableTimes) DoActionBeforeRetry(attempt int, e error) {
 
 func (p *RetryableTimes) Logout(log string) {
 	if p.LogOutput != nil {
-		p.LogOutput.Debugln(log)
+		p.LogOutput.Debug(log)
 	}
 }
 
