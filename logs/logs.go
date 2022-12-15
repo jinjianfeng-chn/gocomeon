@@ -5,7 +5,7 @@ import "sync"
 var l Logger
 var LogLevel = INFO
 var LogPrefix = ""
-var LogCalldepth = 2
+var LogCalldepth = 3
 var LogFlag = 0
 var mutex sync.Mutex
 
@@ -42,7 +42,11 @@ func GetLogger() Logger {
 		mutex.Lock()
 		defer mutex.Unlock()
 		if l == nil {
-			l = New(WithLogLevel(LogLevel), WithLogPrefix(LogPrefix), WithLogCalldepth(LogCalldepth))
+			l = New(
+				WithLogLevel(LogLevel),
+				WithLogPrefix(LogPrefix),
+				WithLogCalldepth(LogCalldepth),
+				WithLogFlat(LogFlag))
 		}
 	}
 	return l
