@@ -11,7 +11,7 @@ import (
 
 func TestRetryableTimes(t *testing.T) {
 
-	retryableTimes := RetryableTimes{
+	retryableTimes := &RetryableTimes{
 		Attempts: 3,
 		Interval: 1000,
 	}
@@ -20,12 +20,8 @@ func TestRetryableTimes(t *testing.T) {
 		return "", errors.New("do action error")
 	}
 
-	retryableInvoke := &RetryableInvoke[string]{
-		Retryable: &retryableTimes,
-	}
-
 	t.Run("normal", func(t *testing.T) {
-		r, e := retryableInvoke.Invoke(action)
+		r, e := Retry[string](retryableTimes, action)
 		fmt.Println(r)
 
 		msg := "do action error"
@@ -35,7 +31,7 @@ func TestRetryableTimes(t *testing.T) {
 	})
 
 	t.Run("action is nil", func(t *testing.T) {
-		_, e := retryableInvoke.Invoke(nil)
+		_, e := Retry[string](retryableTimes, nil)
 		if !errors.Is(e, &ErrorActionIsNil{}) {
 			t.Fatal(fmt.Sprintf("error message expected [%s], but [%s] got", &ErrorActionIsNil{}, e.Error()))
 		}
@@ -48,7 +44,7 @@ func TestRetryableTimesBackoff(t *testing.T) {
 		return "", errors.New("do action error")
 	}
 
-	retryableTimes := RetryableTimesBackoff{
+	retryableTimes := &RetryableTimesBackoff{
 		RetryableTimes: RetryableTimes{
 			Attempts: 3,
 		},
@@ -59,12 +55,8 @@ func TestRetryableTimesBackoff(t *testing.T) {
 		},
 	}
 
-	retryableInvoke := &RetryableInvoke[string]{
-		Retryable: &retryableTimes,
-	}
-
 	t.Run("normal", func(t *testing.T) {
-		r, e := retryableInvoke.Invoke(action)
+		r, e := Retry[string](retryableTimes, action)
 		fmt.Println(r)
 
 		msg := "do action error"
@@ -74,7 +66,7 @@ func TestRetryableTimesBackoff(t *testing.T) {
 	})
 
 	t.Run("action is nil", func(t *testing.T) {
-		_, e := retryableInvoke.Invoke(nil)
+		_, e := Retry[string](retryableTimes, nil)
 		if !errors.Is(e, &ErrorActionIsNil{}) {
 			t.Fatal(fmt.Sprintf("error message expected [%s], but [%s] got", &ErrorActionIsNil{}, e.Error()))
 		}

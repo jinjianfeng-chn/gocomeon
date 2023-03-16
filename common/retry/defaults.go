@@ -42,15 +42,17 @@ func (p *RetryableTimes) RetryInterval(attempt int) time.Duration {
 }
 
 func (p *RetryableTimes) DoActionBeforeRetry(attempt int, e error) {
-	if p.ActionBeforeRetry != nil {
-		p.ActionBeforeRetry(attempt, e)
+	if p.ActionBeforeRetry == nil {
+		return
 	}
+	p.ActionBeforeRetry(attempt, e)
 }
 
 func (p *RetryableTimes) Logout(log string) {
-	if p.LogOutput != nil {
-		p.LogOutput.Debug(log)
+	if p.LogOutput == nil {
+		return
 	}
+	p.LogOutput.Debug(log)
 }
 
 // RetryableTimesBackoff Retry until the maximum number of retry times is reached.

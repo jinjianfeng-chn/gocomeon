@@ -1,6 +1,7 @@
 package retry
 
 import (
+	"errors"
 	"fmt"
 	"time"
 )
@@ -19,40 +20,74 @@ type Retryable interface {
 	Logout(log string)
 }
 
-type RetryableInvoke[T any] struct {
-	Retryable Retryable
+type RetryableCustom struct {
+	RequiredFunc            func(attempt int, e error) bool
+	DoActionBeforeRetryFunc func(attempt int, e error)
+	RetryIntervalFunc       func(attempt int) time.Duration
+	LogoutFunc              func(log string)
 }
 
-// Invoke invokes the given function and performs retries according to the retry options.
-func (p *RetryableInvoke[T]) Invoke(action Action[T]) (result T, e error) {
+func (p *RetryableCustom) Required(attempt int, e error) bool {
+	if p.RequiredFunc == nil {
+		return false
+	}
+	if errors.Is(e, &ErrorActionIsNil{}) {
+		return false
+	}
+	return p.RequiredFunc(attempt, e)
+}
+
+func (p *RetryableCustom) DoActionBeforeRetry(attempt int, e error) {
+	if p.DoActionBeforeRetryFunc == nil {
+		return
+	}
+	p.DoActionBeforeRetryFunc(attempt, e)
+}
+
+func (p *RetryableCustom) RetryInterval(attempt int) time.Duration {
+	if p.RetryIntervalFunc == nil {
+		return 100 * time.Millisecond
+	}
+	return p.RetryIntervalFunc(attempt)
+}
+
+func (p *RetryableCustom) Logout(log string) {
+	if p.LogoutFunc == nil {
+		return
+	}
+	p.LogoutFunc(log)
+}
+
+// Retry do retry the given function and performs retries according to the retry options.
+func Retry[T any](retryable Retryable, action Action[T]) (result T, e error) {
 	if action == nil {
 		e = &ErrorActionIsNil{}
+		return
+	}
+	if retryable == nil {
+		result, e = action()
 		return
 	}
 	attempts := 0
 	for {
 		attempts++
 		if attempts > 1 {
-			p.Retryable.DoActionBeforeRetry(attempts, e)
+			retryable.DoActionBeforeRetry(attempts, e)
 		}
 		result, e = action()
 		if e == nil {
 			if attempts > 1 {
-				p.Retryable.Logout(fmt.Sprintf("success on attempt #%d", attempts))
+				retryable.Logout(fmt.Sprintf("success on attempt #%d", attempts))
 			}
 			return
 		}
-		p.Retryable.Logout(fmt.Sprintf("failed with error [%s] on attempt #%d", e, attempts))
-		if !p.Retryable.Required(attempts, e) {
-			p.Retryable.Logout(fmt.Sprintf("retry for error [%s] is not warranted after %d attempt(s)", e, attempts))
+		retryable.Logout(fmt.Sprintf("failed with error [%s] on attempt #%d", e, attempts))
+		if !retryable.Required(attempts, e) {
+			retryable.Logout(fmt.Sprintf("retry for error [%s] is not warranted after %d attempt(s)", e, attempts))
 			return
 		}
-		interval := p.Retryable.RetryInterval(attempts)
-		p.Retryable.Logout(fmt.Sprintf("retry for error [%s] is warranted after %d attempt(s). the retry will begin after %s", e, attempts, interval))
+		interval := retryable.RetryInterval(attempts)
+		retryable.Logout(fmt.Sprintf("retry for error [%s] is warranted after %d attempt(s). the retry will begin after %s", e, attempts, interval))
 		time.Sleep(interval)
 	}
-}
-
-func Retry[T any](retryable Retryable, action Action[T]) (result T, e error) {
-	return (&RetryableInvoke[T]{retryable}).Invoke(action)
 }
