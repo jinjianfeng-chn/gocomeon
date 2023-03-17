@@ -8,7 +8,7 @@ import (
 
 type Level int
 
-// 基本从低到高
+// 级别从低到高
 const (
 	ALL Level = iota + 1
 	TRACE
