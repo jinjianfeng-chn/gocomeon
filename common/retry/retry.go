@@ -1,6 +1,7 @@
 package retry
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -59,7 +60,7 @@ func (p *RetryableCustom) Logout(log string) {
 }
 
 // Retry do retry the given function and performs retries according to the retry options.
-func Retry[T any](retryable Retryable, action Action[T]) (result T, e error) {
+func Retry[T any](ctx context.Context, retryable Retryable, action Action[T]) (result T, e error) {
 	if action == nil {
 		e = &ErrorActionIsNil{}
 		return
@@ -73,6 +74,13 @@ func Retry[T any](retryable Retryable, action Action[T]) (result T, e error) {
 		attempts++
 		if attempts > 1 {
 			retryable.DoActionBeforeRetry(attempts, e)
+		}
+		select {
+		case <-ctx.Done():
+			e = fmt.Errorf("ctx cancel")
+			return
+		default:
+
 		}
 		result, e = action()
 		if e == nil {
@@ -88,6 +96,13 @@ func Retry[T any](retryable Retryable, action Action[T]) (result T, e error) {
 		}
 		interval := retryable.RetryInterval(attempts)
 		retryable.Logout(fmt.Sprintf("retry of error [%v] is warranted after %d attempt(s). the retry will begin after %s", e, attempts, interval))
-		time.Sleep(interval)
+
+		ticker := time.NewTimer(interval)
+		select {
+		case <-ticker.C:
+			ticker.Stop()
+		case <-ctx.Done():
+			return
+		}
 	}
 }

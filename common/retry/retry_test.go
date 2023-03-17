@@ -1,6 +1,7 @@
 package retry
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -29,12 +30,18 @@ func (p *TestRetryable) Logout(log string) {
 
 func TestInvoke(t *testing.T) {
 	var attempts int
-	result, e := Retry(&TestRetryable{}, func() (string, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	second := 3
+	go func() {
+		time.Sleep(time.Duration(second) * time.Second)
+		cancel()
+	}()
+	result, e := Retry(ctx, &TestRetryable{}, func() (string, error) {
 		attempts++
 		return "", errors.New(fmt.Sprintf("do action error %d", attempts))
 	})
 	fmt.Println(fmt.Sprintf("result=%v, error=%v", result, e))
-	msg := "do action error 5"
+	msg := fmt.Sprintf("do action error %d", second)
 	if e.Error() != msg {
 		t.Fatalf("error message expected [%s], but [%s] got", msg, e.Error())
 	}

@@ -1,6 +1,7 @@
 package retry
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -23,7 +24,7 @@ func TestRetryableTimes(t *testing.T) {
 	}
 
 	t.Run("normal", func(t *testing.T) {
-		r, e := Retry[string](retryableTimes, action)
+		r, e := Retry[string](context.Background(), retryableTimes, action)
 		fmt.Println(r)
 
 		msg := "do action error"
@@ -33,7 +34,7 @@ func TestRetryableTimes(t *testing.T) {
 	})
 
 	t.Run("action is nil", func(t *testing.T) {
-		_, e := Retry[string](retryableTimes, nil)
+		_, e := Retry[string](context.Background(), retryableTimes, nil)
 		if !errors.Is(e, &ErrorActionIsNil{}) {
 			t.Fatal(fmt.Sprintf("error message expected [%s], but [%s] got", &ErrorActionIsNil{}, e.Error()))
 		}
@@ -60,7 +61,7 @@ func TestRetryableTimesBackoff(t *testing.T) {
 	}
 
 	t.Run("normal", func(t *testing.T) {
-		r, e := Retry[string](retryableTimes, action)
+		r, e := Retry[string](context.Background(), retryableTimes, action)
 		fmt.Println(r)
 
 		msg := "do action error"
@@ -70,7 +71,7 @@ func TestRetryableTimesBackoff(t *testing.T) {
 	})
 
 	t.Run("action is nil", func(t *testing.T) {
-		_, e := Retry[string](retryableTimes, nil)
+		_, e := Retry[string](context.Background(), retryableTimes, nil)
 		if !errors.Is(e, &ErrorActionIsNil{}) {
 			t.Fatal(fmt.Sprintf("error message expected [%s], but [%s] got", &ErrorActionIsNil{}, e.Error()))
 		}
