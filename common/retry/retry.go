@@ -81,13 +81,13 @@ func Retry[T any](retryable Retryable, action Action[T]) (result T, e error) {
 			}
 			return
 		}
-		retryable.Logout(fmt.Sprintf("failed with error [%s] on attempt #%d", e, attempts))
+		retryable.Logout(fmt.Sprintf("failed with error [%v] on attempt #%d", e, attempts))
 		if !retryable.Required(attempts, e) {
-			retryable.Logout(fmt.Sprintf("retry for error [%s] is not warranted after %d attempt(s)", e, attempts))
+			retryable.Logout(fmt.Sprintf("retry of error [%v] is not warranted after %d attempt(s)", e, attempts))
 			return
 		}
 		interval := retryable.RetryInterval(attempts)
-		retryable.Logout(fmt.Sprintf("retry for error [%s] is warranted after %d attempt(s). the retry will begin after %s", e, attempts, interval))
+		retryable.Logout(fmt.Sprintf("retry of error [%v] is warranted after %d attempt(s). the retry will begin after %s", e, attempts, interval))
 		time.Sleep(interval)
 	}
 }

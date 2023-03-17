@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/jinjianfeng-chn/gocomeon/common/backoff"
+	"github.com/jinjianfeng-chn/gocomeon/logs"
 )
 
 func TestRetryableTimes(t *testing.T) {
+	logs.SetLogLevel(logs.DEBUG)
 
 	retryableTimes := &RetryableTimes{
 		Attempts: 3,
@@ -39,6 +41,7 @@ func TestRetryableTimes(t *testing.T) {
 }
 
 func TestRetryableTimesBackoff(t *testing.T) {
+	logs.SetLogLevel(logs.DEBUG)
 
 	action := func() (string, error) {
 		return "", errors.New("do action error")
@@ -46,7 +49,8 @@ func TestRetryableTimesBackoff(t *testing.T) {
 
 	retryableTimes := &RetryableTimesBackoff{
 		RetryableTimes: RetryableTimes{
-			Attempts: 3,
+			Attempts:  10,
+			LogOutput: logs.GetLogger(),
 		},
 		Backoff: backoff.Backoff{
 			InitialBackoff: time.Second,
