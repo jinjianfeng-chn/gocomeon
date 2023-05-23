@@ -1,28 +1,35 @@
 package logs
 
-import "sync"
+import (
+	"context"
+	"sync"
+)
 
 var l Logger
 var LogLevel = INFO
-var LogPrefix = ""
+var LogPrefix = "[GO]"
 var LogCalldepth = 3
-var LogFlag = 0
 var mutex sync.Mutex
 
 func SetLogLevel(level Level) {
 	LogLevel = level
+	if l != nil {
+		ResetLogger()
+	}
 }
 
 func SetLogPrefix(prefix string) {
 	LogPrefix = prefix
+	if l != nil {
+		ResetLogger()
+	}
 }
 
 func SetLogCalldepth(calldepth int) {
 	LogCalldepth = calldepth
-}
-
-func SetLogFlag(flag int) {
-	LogFlag = flag
+	if l != nil {
+		ResetLogger()
+	}
 }
 
 func SetLogger(logger Logger) {
@@ -38,72 +45,72 @@ func ResetLogger() {
 }
 
 func GetLogger() Logger {
+	if l != nil {
+		return l
+	}
+	mutex.Lock()
+	defer mutex.Unlock()
 	if l == nil {
-		mutex.Lock()
-		defer mutex.Unlock()
-		if l == nil {
-			l = New(
-				WithLogLevel(LogLevel),
-				WithLogPrefix(LogPrefix),
-				WithLogCalldepth(LogCalldepth),
-				WithLogFlat(LogFlag))
-		}
+		l = NewLogger(
+			WithLogLevel(LogLevel),
+			WithLogFormatter(&logFormatter{LogPrefix, LogCalldepth}),
+		)
 	}
 	return l
 }
 
-func Trace(args ...interface{}) {
-	GetLogger().Trace(args...)
+func Trace(ctx context.Context, args ...interface{}) {
+	GetLogger().Trace(ctx, args...)
 }
 
-func Tracef(format string, args ...interface{}) {
-	GetLogger().Tracef(format, args...)
+func Tracef(ctx context.Context, format string, args ...interface{}) {
+	GetLogger().Tracef(ctx, format, args...)
 }
 
-func Debug(args ...interface{}) {
-	GetLogger().Debug(args...)
+func Debug(ctx context.Context, args ...interface{}) {
+	GetLogger().Debug(ctx, args...)
 }
 
-func Debugf(format string, args ...interface{}) {
-	GetLogger().Debugf(format, args...)
+func Debugf(ctx context.Context, format string, args ...interface{}) {
+	GetLogger().Debugf(ctx, format, args...)
 }
 
-func Info(args ...interface{}) {
-	GetLogger().Info(args...)
+func Info(ctx context.Context, args ...interface{}) {
+	GetLogger().Info(ctx, args...)
 }
 
-func Infof(format string, args ...interface{}) {
-	GetLogger().Infof(format, args...)
+func Infof(ctx context.Context, format string, args ...interface{}) {
+	GetLogger().Infof(ctx, format, args...)
 }
 
-func Warn(args ...interface{}) {
-	GetLogger().Warn(args...)
+func Warn(ctx context.Context, args ...interface{}) {
+	GetLogger().Warn(ctx, args...)
 }
 
-func Warnf(format string, args ...interface{}) {
-	GetLogger().Warnf(format, args...)
+func Warnf(ctx context.Context, format string, args ...interface{}) {
+	GetLogger().Warnf(ctx, format, args...)
 }
 
-func Error(args ...interface{}) {
-	GetLogger().Error(args...)
+func Error(ctx context.Context, args ...interface{}) {
+	GetLogger().Error(ctx, args...)
 }
 
-func Errorf(format string, args ...interface{}) {
-	GetLogger().Errorf(format, args...)
+func Errorf(ctx context.Context, format string, args ...interface{}) {
+	GetLogger().Errorf(ctx, format, args...)
 }
 
-func Fatal(args ...interface{}) {
-	GetLogger().Fatal(args...)
+func Fatal(ctx context.Context, args ...interface{}) {
+	GetLogger().Fatal(ctx, args...)
 }
 
-func Fatalf(format string, args ...interface{}) {
-	GetLogger().Fatalf(format, args...)
+func Fatalf(ctx context.Context, format string, args ...interface{}) {
+	GetLogger().Fatalf(ctx, format, args...)
 }
 
-func Panic(args ...interface{}) {
-	GetLogger().Panic(args...)
+func Panic(ctx context.Context, args ...interface{}) {
+	GetLogger().Panic(ctx, args...)
 }
 
-func Panicf(format string, args ...interface{}) {
-	GetLogger().Panicf(format, args...)
+func Panicf(ctx context.Context, format string, args ...interface{}) {
+	GetLogger().Panicf(ctx, format, args...)
 }

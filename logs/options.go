@@ -1,5 +1,7 @@
 package logs
 
+import "io"
+
 type LoggerOption func(*logger)
 
 func WithLogLevel(level Level) LoggerOption {
@@ -8,20 +10,20 @@ func WithLogLevel(level Level) LoggerOption {
 	}
 }
 
-func WithLogPrefix(prefix string) LoggerOption {
+func WithLogFormatter(logFormatter LogFormatter) LoggerOption {
 	return func(l *logger) {
-		l.prefix = prefix
+		l.Formatter = logFormatter
 	}
 }
 
-func WithLogCalldepth(calldepth int) LoggerOption {
+func WithLogWriter(w io.Writer) LoggerOption {
 	return func(l *logger) {
-		l.calldepth = calldepth
+		l.Writer = w
 	}
 }
 
-func WithLogFlat(flag int) LoggerOption {
+func WithLogWriterError(w io.Writer) LoggerOption {
 	return func(l *logger) {
-		l.flag = flag
+		l.WriterError = w
 	}
 }

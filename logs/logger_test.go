@@ -1,17 +1,18 @@
 package logs
 
 import (
+	"context"
 	"testing"
 )
 
 func TestLogger(t *testing.T) {
-	l := New()
-	l.Trace("hello world")
-	l.Debug("hello world")
-	l.Infof("hello world, %s", "1")
-	l.Infof("hello world")
-	l.Infof("hello world")
-	l.Warn("hello world")
-	l.Error("hello world")
-	l.Fatal("hello world")
+	l := NewLogger()
+	l.Trace(context.Background(), "hello world")
+	l.Debug(context.Background(), "hello world")
+	l.Infof(context.Background(), "hello world, %s", "1")
+	l.Infof(context.Background(), "hello world")
+	l.Infof(context.Background(), "hello world")
+	l.Warn(context.Background(), "hello world")
+	l.Error(context.Background(), "hello world")
+	l.Fatal(context.Background(), "hello world")
 }

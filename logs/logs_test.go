@@ -1,14 +1,17 @@
 package logs
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestLog(t *testing.T) {
-	Trace("hello world")
-	Debug("hello world")
-	Infof("hello world, %s", "1")
-	Infof("hello world")
-	Infof("hello world")
-	Warn("hello world")
-	Error("hello world")
-	Fatal("hello world")
+	Trace(context.Background(), "hello world")
+	Debug(context.Background(), "hello world")
+	Infof(context.Background(), "hello world, %s", "1")
+	Infof(context.Background(), "hello world")
+	Infof(context.Background(), "hello world")
+	Warn(context.Background(), "hello world")
+	Error(context.Background(), "hello world")
+	Fatal(context.Background(), "hello world")
 }
